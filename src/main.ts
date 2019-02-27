@@ -1,52 +1,155 @@
-import {vec3} from 'gl-matrix';
+import { vec3, quat } from 'gl-matrix';
 import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
+import Drawable from './rendering/gl/Drawable';
 import Square from './geometry/Square';
-import ScreenQuad from './geometry/ScreenQuad';
+import Leaf from './geometry/Leaf';
+import Mario from './geometry/Mario';
+import Pipes from './geometry/Pipes';
+import Ground from './geometry/Ground';
+import Box from './geometry/Box';
+import Question from './geometry/Question';
+import LSystemMesh from './geometry/LSystemMesh';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
-import {setGL} from './globals';
-import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import { setGL } from './globals';
+import ShaderProgram, { Shader } from './rendering/gl/ShaderProgram';
+import LSystem from './LSystem';
+import Turtle from './Turtle';
+import TurtleState from './TurtleState';
+import ScreenQuad from './geometry/ScreenQuad';
+
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
+  'Update': update, // A function pointer, essentially
+  'Iterations': 1,
+  'LeafSize': 1,
+  'Piranha Color': [245, 0, 0],
+  'Tube Color' : [0, 255, 0]
 };
 
-let square: Square;
+let leaf: Leaf;
+let mario: Mario;
+let base: Pipes;
+let ground: Ground;
+let question : Question;
+let box : Box;
+let plantMesh: LSystemMesh;
 let screenQuad: ScreenQuad;
-let time: number = 0.0;
 
 function loadScene() {
-  square = new Square();
-  square.create();
+  leaf = new Leaf();
+  mario = new Mario();
+  base = new Pipes();
+  question = new Question();
+  box = new Box();
+  ground = new Ground();
+  plantMesh = new LSystemMesh();
   screenQuad = new ScreenQuad();
   screenQuad.create();
+}
 
-  // Set up instanced rendering data arrays here.
-  // This example creates a set of positional
-  // offsets and gradiated colors for a 100x100 grid
-  // of squares, even though the VBO data for just
-  // one square is actually passed to the GPU
-  let offsetsArray = [];
-  let colorsArray = [];
-  let n: number = 100.0;
-  for(let i = 0; i < n; i++) {
-    for(let j = 0; j < n; j++) {
-      offsetsArray.push(i);
-      offsetsArray.push(j);
-      offsetsArray.push(0);
+//funtion to load OBJ ... thank u, cis 460 half edge
 
-      colorsArray.push(i / n);
-      colorsArray.push(j / n);
-      colorsArray.push(1.0);
-      colorsArray.push(1.0); // Alpha channel
+ function loadOBJ(mesh: Drawable, objectData: string, callback: any): void {
+    var vertIDX = [];
+    var vertNor = [];
+    var vertBuff = [];
+    var buffNor = [];
+    var buffIDX: any = {};
+    var finalIDX = [];
+    var index: number = 0;
+
+
+    var lines = objectData.split('\n');
+
+    for (var i = 0; i < lines.length; i++) {
+      var isVert : boolean = lines[i].startsWith('v ');
+      var isNor : boolean = lines[i].startsWith('vn ');
+      var isFace : boolean = lines[i].startsWith('f ');
+
+        if (isVert) {
+            var line = lines[i].split(/\s+/);
+            for(var j = 1; j <= 3; j++){
+              vertIDX.push(line[j]);
+            }
+        }
+        else if (isNor) {
+            line = lines[i].split(/\s+/);
+            for(var j = 1; j <= 3; j++){
+              vertNor.push(line[j]);
+            }
+        }
+        else if (isFace) {
+            line = lines[i].split(/\s+/);
+            var emptyStringIndex = line.indexOf('');
+            if (emptyStringIndex > -1) {
+                line.splice(emptyStringIndex, 1);
+            }
+
+            var fIndex = line.indexOf('f');
+            if (fIndex > -1) {
+                line.splice(fIndex, 1);
+            }
+
+            for (var j = 0; j < line.length; j++) {
+                if (line[j] in buffIDX) {
+                    finalIDX.push(buffIDX[line[j]]);
+                } else {
+                    var face: Array<string> = line[j].split('/');
+
+                    var f0 = (parseInt(face[0]) - 1) * 3;
+                    var f2 = (parseInt(face[2]) - 1) * 3;
+
+                    vertBuff.push(vertIDX[f0 + 0]);
+                    vertBuff.push(vertIDX[f0 + 1]);
+                    vertBuff.push(vertIDX[f0 + 2]);
+                    vertBuff.push(1);
+
+                    buffNor.push(vertNor[f2 + 0]);
+                    buffNor.push(vertNor[f2 + 1]);
+                    buffNor.push(vertNor[f2 + 2]);
+                    buffNor.push(0);
+                    // add the newly created vertex to the list of indices
+                    buffIDX[line[j]] = index;
+                    finalIDX.push(index);
+                    index += 1;
+                }
+
+            }
+        }
     }
+
+    var finalPositions = vertBuff;
+    var finalNormals = buffNor;
+    var finalIndices = finalIDX;
+
+    callback(finalIndices, finalPositions, finalNormals);
+}
+
+
+
+function update() {
+  plantMesh.destroy();
+  plantMesh.clear();
+
+  let startChar: string = 'A';
+  let plantLSystem: LSystem = new LSystem(startChar, plantMesh);
+
+  // expand starting character
+  for (var i = 0; i < controls.Iterations; i++) {
+    plantLSystem.expandString();
   }
-  let offsets: Float32Array = new Float32Array(offsetsArray);
-  let colors: Float32Array = new Float32Array(colorsArray);
-  square.setInstanceVBOs(offsets, colors);
-  square.setNumInstances(n * n); // grid of "particles"
+
+  let turtle: Turtle = new Turtle(controls.LeafSize, 1.0, plantMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
+
+  // add rules for what draw functions to call
+  plantLSystem.addRules(leaf, mario, plantMesh, turtle);
+  plantLSystem.drawLSystem();
+
+  plantMesh.create();
 }
 
 function main() {
@@ -60,10 +163,27 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
+  gui.add(controls, 'Update');
+  gui.add(controls, 'LeafSize', 0.5, 1.5);
+  gui.add(controls, 'Iterations', 0, 4).step(1);
+  var colorPicker = gui.addColor(controls, 'Piranha Color');
+  var colorPicker2 = gui.addColor(controls, 'Tube Color');
+
+  colorPicker.onChange(function(value : Float32Array) {
+    mario.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
+    mario.resetColors();
+  });
+
+  colorPicker2.onChange(function(value : Float32Array) {
+    console.log("Change detected");
+    base.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
+    base.resetColors();
+
+  });
 
   // get canvas and webgl context
-  const canvas = <HTMLCanvasElement> document.getElementById('canvas');
-  const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');
+  const canvas = <HTMLCanvasElement>document.getElementById('canvas');
+  const gl = <WebGL2RenderingContext>canvas.getContext('webgl2');
   if (!gl) {
     alert('WebGL 2 not supported!');
   }
@@ -74,52 +194,152 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
+  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(0.2, 0.2, 0.2, 1);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
+  //THISSSSSSSSSSSSSS
+  //renderer.setClearColor(0.3, 0.81, 0.92, 1);
+  gl.enable(gl.DEPTH_TEST);
+
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
+  ]);
 
   const instancedShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/instanced-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/instanced-frag.glsl')),
-  ]);
+]);
 
-  const flat = new ShaderProgram([
+const flat = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
-  ]);
+]);
+
+const floor = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/ground-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/ground-frag.glsl')),
+]);
+
+const boxShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/box-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/box-frag.glsl')),
+]);
+
+
+
+  function leafCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    leaf.indices = Uint32Array.from(indices);
+    leaf.positions = Float32Array.from(positions);
+    leaf.normals = Float32Array.from(normals);
+    leaf.create();
+  }
+
+  function marioCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    mario.indices = Uint32Array.from(indices);
+    mario.positions = Float32Array.from(positions);
+    mario.normals = Float32Array.from(normals);
+    mario.create();
+  }
+
+  function baseCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    base.indices = Uint32Array.from(indices);
+    base.positions = Float32Array.from(positions);
+    base.normals = Float32Array.from(normals);
+    base.create();
+  }
+
+  function groundCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    ground.indices = Uint32Array.from(indices);
+    ground.positions = Float32Array.from(positions);
+    ground.normals = Float32Array.from(normals);
+    ground.create();
+  }
+
+  function boxCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    box.indices = Uint32Array.from(indices);
+    box.positions = Float32Array.from(positions);
+    box.normals = Float32Array.from(normals);
+    box.create();
+  }
+
+  function questionCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    question.indices = Uint32Array.from(indices);
+    question.positions = Float32Array.from(positions);
+    question.normals = Float32Array.from(normals);
+    question.create();
+  }
+
+
+  // referenced from https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
+  function readTextFile(file: string, callback: any): void {
+    let indices: Uint32Array = new Uint32Array(0);
+    let positions: Float32Array = new Float32Array(0);
+    let normals: Float32Array = new Float32Array(0);
+
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    rawFile.onreadystatechange = function () {
+      if (rawFile.readyState === 4) {
+        if (rawFile.status === 200 || rawFile.status == 0) {
+          var allText = rawFile.responseText;
+          loadOBJ(leaf, allText, callback);
+        }
+      }
+    }
+    rawFile.send(null);
+  }
+
+  let leafFilename: string = "./leaf.obj";
+  readTextFile(leafFilename, leafCallback);
+
+  let marioFilename: string = "./bite.obj";
+  readTextFile(marioFilename, marioCallback);
+
+  let tubeFile: string = "./tubes.obj";
+  readTextFile(tubeFile, baseCallback);
+
+  let groundFile: string = "./ground.obj";
+  readTextFile(groundFile, groundCallback);
+
+  let boxFile: string = "./box.obj";
+  readTextFile(boxFile, boxCallback);
+
+  let quesFile: string = "./question.obj";
+  readTextFile(quesFile, questionCallback);
+
+  update();
 
   // This function will be called every frame
   function tick() {
     camera.update();
     stats.begin();
-    instancedShader.setTime(time);
-    flat.setTime(time++);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
+    base.create();
+
     renderer.render(camera, flat, [screenQuad]);
-    renderer.render(camera, instancedShader, [
-      square,
+    renderer.render(camera, lambert, [
+      plantMesh,
+      base
     ]);
+    renderer.render(camera, boxShader, [box, question]);
+    renderer.render(camera, floor, [ground]);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
   }
 
-  window.addEventListener('resize', function() {
+  window.addEventListener('resize', function () {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
 
   // Start the render loop
   tick();

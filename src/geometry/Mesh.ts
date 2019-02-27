@@ -20,7 +20,7 @@ class Mesh extends Drawable {
     this.objString = objString;
   }
 
-  create() {  
+  create() {
     let posTemp: Array<number> = [];
     let norTemp: Array<number> = [];
     let uvsTemp: Array<number> = [];
@@ -63,7 +63,7 @@ class Mesh extends Drawable {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufNor);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufNor );
     gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
@@ -74,6 +74,7 @@ class Mesh extends Drawable {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufUV);
     gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
+
 
     console.log(`Created Mesh from OBJ`);
     this.objString = ""; // hacky clear
