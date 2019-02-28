@@ -8,16 +8,16 @@ import TurtleState from './TurtleState'
 class Turtle {
 
   plantMesh: LSystemMesh;
-  turtleStates: TurtleState[];
+  turtleStack: TurtleState[];
   turtle: TurtleState;
   rotation: number;
   scale: number;
 
-    constructor(scale: number, rotation: number, startMesh: LSystemMesh, startPos: vec3, startOrientation: quat, startDepth: number, startScale: number) {
+    constructor(scale: number, startMesh: LSystemMesh, startPos: vec3, startOrientation: quat, startDepth: number, startScale: number) {
         this.scale = scale;
-        this.rotation = rotation;
+        this.rotation = 1.0;
         this.plantMesh = startMesh;
-        this.turtleStates = [];
+        this.turtleStack = [];
         this.turtle = new TurtleState(startPos, startOrientation, startDepth, startScale);
     }
 
@@ -28,9 +28,9 @@ class Turtle {
     // lets *get* *that* *sun*
     private randomRotate() {
       let r = this.rotation;
-      this.turtle.rotX(r * (Math.random() - 0.5) * 50);
+      this.turtle.rotX(r * (Math.random() - 0.5) * 40);
       this.turtle.rotY(r * (Math.random() - 0.5) * 15);
-      this.turtle.rotZ(r * (Math.random() - 0.5) * 50);
+      this.turtle.rotZ(r * (Math.random() - 0.5) * 40);
     }
 
     private heightRotate(){
@@ -70,17 +70,15 @@ class Turtle {
 
       var trans: vec4 = vec4.fromValues(0, 1, 0, 1);
       trans = vec4.scale(trans, trans, this.turtle.scale);
-      trans = vec4.transformQuat(trans, trans, this.turtle.orientation);
+      trans = vec4.transformQuat(trans, trans, this.turtle.orient);
 
       var t1 = trans[0];
       var t2 = trans[1];
       var t3 = trans[2];
 
-      let toTranslateByVec3: vec3 = vec3.fromValues(t1, t2, t3);
+      let upShiftVec3: vec3 = vec3.fromValues(t1, t2, t3);
 
-      this.turtle.transTurtle(toTranslateByVec3);
-
-
+      this.turtle.transTurtle(upShiftVec3);
     }
 
     drawLeaf(leafMesh: Leaf, plantMesh: LSystemMesh) : void {
@@ -127,7 +125,6 @@ class Turtle {
         for (var i = 0; i < leafIdx.length; i++) {
             plantMesh.addIndex(leafIdx[i] + offset);
         }
-
         this.translateTurtle();
         this.turtle.iter++;
     }
@@ -136,12 +133,12 @@ class Turtle {
 
         this.drawLeaf(leafMesh, plantMesh);
 
-        var toTranslateBy: vec4 = vec4.fromValues(0, 0.1, 0, 1);
-        toTranslateBy = vec4.scale(toTranslateBy, toTranslateBy, this.turtle.scale);
-        toTranslateBy = vec4.transformQuat(toTranslateBy, toTranslateBy, this.turtle.orientation);
-        let toTranslateByVec3: vec3 = vec3.fromValues(toTranslateBy[0], toTranslateBy[1], toTranslateBy[2]);
+        var upShift: vec4 = vec4.fromValues(0, 0.05, 0, 1);
+        upShift = vec4.scale(upShift, upShift, this.turtle.scale);
+        upShift = vec4.transformQuat(upShift, upShift, this.turtle.orient);
+        let upShiftVec3: vec3 = vec3.fromValues(upShift[0], upShift[1], upShift[2]);
 
-        this.turtle.transTurtle(toTranslateByVec3);
+        this.turtle.transTurtle(upShiftVec3);
 
         let transformMat: mat4 = this.turtle.transMat();
         let invTransMat: mat4 = this.turtle.invTransTransMat();
@@ -183,18 +180,18 @@ class Turtle {
 
     private rotator(code : any){
 
-      this.turtleStates.push(this.turtle);
+      this.turtleStack.push(this.turtle);
 
-      let p = this.turtle.position;
-      let o = this.turtle.orientation;
+      let p = this.turtle.pos;
+      let o = this.turtle.orient;
       let d = this.turtle.iter;
       let s = this.turtle.scale;
 
       let pos: vec3 = vec3.fromValues(p[0], p[1], p[2]);
-      let orientation: quat = quat.fromValues(o[0], o[1], o[2], o[3]);
+      let orient: quat = quat.fromValues(o[0], o[1], o[2], o[3]);
       let iter = d + 1;
       let scale = s;
-      var newTurtle: TurtleState = new TurtleState(pos, orientation, iter, scale);
+      var newTurtle: TurtleState = new TurtleState(pos, orient, iter, scale);
 
       if (code == 0){
         newTurtle.rotZ(25);
@@ -217,7 +214,7 @@ class Turtle {
     }
 
     plusZ(leafMesh: Leaf, plantMesh: LSystemMesh) : void {
-        this.turtle = this.turtleStates.pop();
+        this.turtle = this.turtleStack.pop();
         this.turtle.rotZ(-15 - (Math.random() * 5.0));
     }
 
@@ -233,15 +230,13 @@ class Turtle {
         this.rotator(3);
     }
 
-
-
     drawWildcard(leafMesh: Leaf, plantMesh: LSystemMesh) : void {
-        this.turtle = this.turtleStates.pop();
+        this.turtle = this.turtleStack.pop();
         this.turtle.rotX(Math.random() - 0.5);
     }
 
     plusXYZ(leafMesh: Leaf, plantMesh: LSystemMesh) : void {
-        this.turtle = this.turtleStates.pop();
+        this.turtle = this.turtleStack.pop();
         this.turtle.rotZ(15);
         this.turtle.rotY(5);
         this.turtle.rotX(10);

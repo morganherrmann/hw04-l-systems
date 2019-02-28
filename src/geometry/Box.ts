@@ -41,6 +41,8 @@ class Box extends Drawable {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufCol);
     gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
 
+    //this.numInstances = 2;
+
   }
 };
 

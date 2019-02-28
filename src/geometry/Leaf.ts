@@ -7,9 +7,26 @@ class Leaf extends Drawable {
   positions: Float32Array;
   normals: Float32Array;
   colors: Float32Array;
+  color: vec3;
 
   constructor() {
     super(); // Call the constructor of the super class. This is required.
+    this.color = vec3.fromValues(0.05, 0.93, 0.15);
+  }
+
+  setColor(newColor: vec3) {
+    this.color = newColor;
+  }
+
+  resetColors() {
+    var colorsArr: number[] = [];
+    for (var i = 0; i < this.positions.length; i +=4) {
+      colorsArr.push(this.color[0]);
+      colorsArr.push(this.color[1]);
+      colorsArr.push(this.color[2]);
+      colorsArr.push(1.0);
+    }
+    this.colors = new Float32Array(colorsArr);
   }
 
   create() {

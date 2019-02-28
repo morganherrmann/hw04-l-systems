@@ -12,7 +12,7 @@ out vec4 fs_LightVec;
 out vec4 fs_Col;
 out vec4 fs_Pos;
 uniform float u_Time;
-const vec4 lightPos = vec4(5, 5, 3, 1); 
+const vec4 lightPos = vec4(5, 5, 3, 1);
 
   float Noise(float x, float y){
     return (fract(sin(dot(vec2(x, y), vec2(12.9898, 4.1414))) * 43758.5453));
@@ -59,9 +59,7 @@ void main()
     mat3 invTranspose = mat3(u_ModelInvTr);
     fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);
 
-
     vec4 modelposition = u_Model * vs_Pos;
-
     modelposition.y += fbm(vs_Pos.x / 32.0, vs_Pos.z / 32.0) * abs(sin(u_Time / 1000.0));
 
     fs_LightVec = lightPos - modelposition;

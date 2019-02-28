@@ -23,16 +23,17 @@ import ScreenQuad from './geometry/ScreenQuad';
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  'Update': update, // A function pointer, essentially
+  'Update': update,
   'Iterations': 1,
   'LeafSize': 1,
-  'Piranha Color': [245, 0, 0],
-  'Tube Color' : [0, 255, 0]
+  'Leaf Color': [0.0, 255.0, 0.0],
+  'Piranha Color': [245.0, 0.0, 0.0],
+  'Tube Color' : [0.0, 255, 0.0]
 };
 
 let leaf: Leaf;
 let mario: Mario;
-let base: Pipes;
+let pipes: Pipes;
 let ground: Ground;
 let question : Question;
 let box : Box;
@@ -42,7 +43,7 @@ let screenQuad: ScreenQuad;
 function loadScene() {
   leaf = new Leaf();
   mario = new Mario();
-  base = new Pipes();
+  pipes = new Pipes();
   question = new Question();
   box = new Box();
   ground = new Ground();
@@ -61,7 +62,6 @@ function loadScene() {
     var buffIDX: any = {};
     var finalIDX = [];
     var index: number = 0;
-
 
     var lines = objectData.split('\n');
 
@@ -112,12 +112,11 @@ function loadScene() {
                     buffNor.push(vertNor[f2 + 1]);
                     buffNor.push(vertNor[f2 + 2]);
                     buffNor.push(0);
-                    // add the newly created vertex to the list of indices
+
                     buffIDX[line[j]] = index;
                     finalIDX.push(index);
                     index += 1;
                 }
-
             }
         }
     }
@@ -132,20 +131,20 @@ function loadScene() {
 
 
 function update() {
+
+
   plantMesh.destroy();
   plantMesh.clear();
 
   let startChar: string = 'A';
   let plantLSystem: LSystem = new LSystem(startChar, plantMesh);
 
-  // expand starting character
   for (var i = 0; i < controls.Iterations; i++) {
     plantLSystem.expandString();
   }
 
-  let turtle: Turtle = new Turtle(controls.LeafSize, 1.0, plantMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
-
-  // add rules for what draw functions to call
+  //create the Leaf and plant system
+  let turtle: Turtle = new Turtle(controls.LeafSize, plantMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
   plantLSystem.addRules(leaf, mario, plantMesh, turtle);
   plantLSystem.drawLSystem();
 
@@ -168,6 +167,7 @@ function main() {
   gui.add(controls, 'Iterations', 0, 4).step(1);
   var colorPicker = gui.addColor(controls, 'Piranha Color');
   var colorPicker2 = gui.addColor(controls, 'Tube Color');
+  var colorPicker3 = gui.addColor(controls, 'Leaf Color');
 
   colorPicker.onChange(function(value : Float32Array) {
     mario.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
@@ -175,10 +175,13 @@ function main() {
   });
 
   colorPicker2.onChange(function(value : Float32Array) {
-    console.log("Change detected");
-    base.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
-    base.resetColors();
+    pipes.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
+    pipes.resetColors();
+  });
 
+  colorPicker3.onChange(function(value : Float32Array) {
+    leaf.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
+    leaf.resetColors();
   });
 
   // get canvas and webgl context
@@ -242,11 +245,11 @@ const boxShader = new ShaderProgram([
     mario.create();
   }
 
-  function baseCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
-    base.indices = Uint32Array.from(indices);
-    base.positions = Float32Array.from(positions);
-    base.normals = Float32Array.from(normals);
-    base.create();
+  function pipesCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    pipes.indices = Uint32Array.from(indices);
+    pipes.positions = Float32Array.from(positions);
+    pipes.normals = Float32Array.from(normals);
+    pipes.create();
   }
 
   function groundCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
@@ -271,8 +274,9 @@ const boxShader = new ShaderProgram([
   }
 
 
-  // referenced from https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
-  function readTextFile(file: string, callback: any): void {
+  // SOURCE CODE FOR READING OBJ FILE FROM PIAZZA
+  //https://piazza.com/class/jr11vjieq8t6om?cid=103
+  function parseOBJ(file: string, callback: any): void {
     let indices: Uint32Array = new Uint32Array(0);
     let positions: Float32Array = new Float32Array(0);
     let normals: Float32Array = new Float32Array(0);
@@ -280,33 +284,36 @@ const boxShader = new ShaderProgram([
     var rawFile = new XMLHttpRequest();
     rawFile.open("GET", file, false);
     rawFile.onreadystatechange = function () {
-      if (rawFile.readyState === 4) {
-        if (rawFile.status === 200 || rawFile.status == 0) {
-          var allText = rawFile.responseText;
-          loadOBJ(leaf, allText, callback);
-        }
-      }
+
+      if(rawFile.readyState === 4)
+        {
+            if(rawFile.status === 200 || rawFile.status == 0)
+            {
+    var allText = rawFile.responseText;
+    loadOBJ(leaf, allText, callback);
     }
+  }
+}
     rawFile.send(null);
   }
 
   let leafFilename: string = "./leaf.obj";
-  readTextFile(leafFilename, leafCallback);
+  parseOBJ(leafFilename, leafCallback);
 
   let marioFilename: string = "./bite.obj";
-  readTextFile(marioFilename, marioCallback);
+  parseOBJ(marioFilename, marioCallback);
 
   let tubeFile: string = "./tubes.obj";
-  readTextFile(tubeFile, baseCallback);
+  parseOBJ(tubeFile, pipesCallback);
 
   let groundFile: string = "./ground.obj";
-  readTextFile(groundFile, groundCallback);
+  parseOBJ(groundFile, groundCallback);
 
   let boxFile: string = "./box.obj";
-  readTextFile(boxFile, boxCallback);
+  parseOBJ(boxFile, boxCallback);
 
   let quesFile: string = "./question.obj";
-  readTextFile(quesFile, questionCallback);
+  parseOBJ(quesFile, questionCallback);
 
   update();
 
@@ -316,12 +323,12 @@ const boxShader = new ShaderProgram([
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    base.create();
+    pipes.create();
 
     renderer.render(camera, flat, [screenQuad]);
     renderer.render(camera, lambert, [
       plantMesh,
-      base
+      pipes
     ]);
     renderer.render(camera, boxShader, [box, question]);
     renderer.render(camera, floor, [ground]);
