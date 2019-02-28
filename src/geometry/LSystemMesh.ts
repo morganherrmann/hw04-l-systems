@@ -63,7 +63,6 @@ class LSystem extends Drawable {
     }
   }
 
-  // only call once all geometry has been added to cactus (l-system has been fully expanded and such)
   create() {
 
 

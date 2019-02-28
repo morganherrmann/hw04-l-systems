@@ -8,7 +8,7 @@ import { vec3, mat4 } from 'gl-matrix';
 
 class LSystem {
 
-    currStringArr: string[] = [];
+    stringArray: string[] = [];
 
     expRules: ExpansionRules= new ExpansionRules();
     drawRules: DrawRules = new DrawRules();
@@ -23,7 +23,7 @@ class LSystem {
 
     constructor(startChar: string, startMesh: LSystemMesh) {
 
-        this.currStringArr.push(startChar);
+        this.stringArray.push(startChar);
 
         let exp: Array<[string, string, number]> = [
                                                     ['[','[', 1.0],
@@ -71,7 +71,7 @@ class LSystem {
     }
 
     getString() : string {
-        return this.currStringArr.join('');
+        return this.stringArray.join('');
     }
 
 
@@ -86,30 +86,26 @@ class LSystem {
 
     computeLSystem() : void {
         var toExpand: string[] = [];
-        for (var i = 0; i < this.currStringArr.length; i++) {
-            var stringToExpand = this.currStringArr[i];
+        for (var i = 0; i < this.stringArray.length; i++) {
+            var stringToExpand = this.stringArray[i];
             for (var j = 0; j < stringToExpand.length; j++) {
                 this.pushString(toExpand, stringToExpand, j);
             }
         }
 
-        this.currStringArr = toExpand;
+        this.stringArray = toExpand;
     }
 
     drawLSystem() : void {
-        for (var i = 0; i < this.currStringArr.length; i++) {
-            var stringToExpand = this.currStringArr[i];
+        for (var i = 0; i < this.stringArray.length; i++) {
+            var stringToExpand = this.stringArray[i];
             for (var j = 0; j < stringToExpand.length; j++) {
                 var char = stringToExpand.charAt(j);
-
                 let drawFunction = this.drawRules.getDrawRule(char);
                 drawFunction();
             }
         }
     }
-
-
-
 }
 
 export default LSystem;

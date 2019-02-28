@@ -14,8 +14,7 @@ class Pipes extends Drawable {
     this.color = vec3.fromValues(0.25, 0.73, 0.25);
   }
 
-  setColor(newColor: vec3) {
-    
+  setColor(newColor: vec3) {  
     this.color = newColor;
   }
 
