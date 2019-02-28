@@ -13522,9 +13522,9 @@ class Box extends __WEBPACK_IMPORTED_MODULE_0__rendering_gl_Drawable__["a" /* de
     create() {
         var colorsArr = [];
         for (var i = 0; i < this.positions.length; i += 4) {
-            colorsArr.push(0.6);
+            colorsArr.push(0.99);
             colorsArr.push(0.74);
-            colorsArr.push(0.12);
+            colorsArr.push(0.02);
             colorsArr.push(1);
         }
         this.colors = new Float32Array(colorsArr);
@@ -17476,7 +17476,7 @@ module.exports = "#version 300 es\r\n\r\nuniform mat4 u_Model;\r\nuniform mat4 u
 /* 81 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\n\r\nprecision highp float;\r\n\r\nuniform vec4 u_Color;\r\n\r\n\r\nin vec4 fs_Nor;\r\nin vec4 fs_LightVec;\r\nin vec4 fs_Col;\r\n\r\nuniform float u_Time;\r\n\r\n\r\nout vec4 out_Col;\r\n\r\nvoid main()\r\n{\r\n\r\n        vec4 diffuseColor = fs_Col;\r\n\r\n\r\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\r\n\r\n        diffuseTerm = clamp(diffuseTerm, 0.0, 1.0);\r\n\r\n        float ambientTerm = 0.3;\r\n        float lightIntensity = diffuseTerm + ambientTerm;\r\n\r\n        out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);\r\n}\r\n"
+module.exports = "#version 300 es\r\n\r\nprecision highp float;\r\n\r\nuniform vec4 u_Color;\r\n\r\n\r\nin vec4 fs_Nor;\r\nin vec4 fs_LightVec;\r\nin vec4 fs_Col;\r\n\r\nuniform float u_Time;\r\n\r\n\r\nout vec4 out_Col;\r\n\r\nvoid main()\r\n{\r\n\r\n        vec4 diffuseColor = fs_Col;\r\n\r\n\r\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\r\n\r\n        diffuseTerm = clamp(diffuseTerm, 0.0, 1.0);\r\n\r\n        float ambientTerm = 0.3;\r\n        float lightIntensity = diffuseTerm + ambientTerm;\r\n\r\n\r\n        out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);\r\n}\r\n"
 
 /***/ }),
 /* 82 */
