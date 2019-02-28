@@ -16,9 +16,9 @@ class Box extends Drawable {
 
     var colorsArr: number[] = [];
     for (var i = 0; i < this.positions.length; i +=4) {
-      colorsArr.push(0.6);
+      colorsArr.push(0.99);
       colorsArr.push(0.74);
-      colorsArr.push(0.12);
+      colorsArr.push(0.02);
       colorsArr.push(1);
     }
     this.colors = new Float32Array(colorsArr);
