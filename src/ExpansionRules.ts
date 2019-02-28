@@ -1,48 +1,62 @@
 
-
-
 class ExpansionRules {
 
-
+    axiomCharacteracter : string;
+    repString : string;
+    prb : number;
     expMap: Map<string, Map<number, string>> = new Map<string, Map<number, string>>();
 
     constructor() {}
 
-    // adds expansion rule to map
-    createExpRule(startChar: string, str: string, probability: number) {
-        if (this.expMap.has(startChar)) {
-            var probToStringMap: Map<number, string> = this.expMap.get(startChar);
-            probToStringMap.set(probability, str);
+    setStartChar(){
+      var charProbMap = this.expMap.get(this.axiomCharacteracter);
+      charProbMap.set(this.prb, this.repString);
+    }
+
+    // ADD AN EXP RULE YIKE
+    createExpRule(axiomCharacter: string, str: string, probability: number) {
+      var charProbMap: Map<number, string> = new Map<number, string>();
+        if (!this.expMap.has(axiomCharacter)) {
+          charProbMap.set(probability, str);
+          this.expMap.set(axiomCharacter, charProbMap);
         } else {
-            var probToStringMap: Map<number, string> = new Map<number, string>();
-            probToStringMap.set(probability, str);
-            this.expMap.set(startChar, probToStringMap);
+          this.axiomCharacteracter = axiomCharacter;
+          this.repString = str;
+          this.prb = probability;
+          this.setStartChar();
         }
 
     }
 
-    // uses randomly generated number to determine how to expand a character
-    getExpansion(startChar: string): string {
-        if (this.expMap.has(startChar)) {
+
+    sumProbability(axiomCharacter: string) : string {
+
+      var rand: number = Math.random();
+      var cumulativeProb: number = 0.0;
+      var expanded: string;
+      var charProbMap: Map<number, string> = this.expMap.get(axiomCharacter);
+
+      for (const prob of charProbMap.keys()) {
+        var isRand = rand > cumulativeProb;
+        var validRand = rand <= prob + cumulativeProb;
+          if (isRand && validRand) {
+              expanded = charProbMap.get(prob);
+          }
+          cumulativeProb = cumulativeProb + prob;
+      }
+      return expanded;
+    }
 
 
+    //function to get the fully expanded LSystem
+    getExpansion(axiomCharacter: string): string {
 
-            var str: string;
-            var probToStringMap: Map<number, string> = this.expMap.get(startChar);
-            var rand: number = Math.random();
-            var cumulativeProb: number = 0.0;
-
-            for (const prob of probToStringMap.keys()) {
-
-                if (rand > cumulativeProb && rand <= cumulativeProb + prob) {
-                    str = probToStringMap.get(prob);
-                }
-                cumulativeProb += prob;
-            }
-            return str;
-        } else {
-            return '';
-        }
+      var hasChar = this.expMap.has(axiomCharacter);
+      if (!hasChar){
+        return '';
+      }
+      var finalString = this.sumProbability(axiomCharacter);
+      return finalString;
     }
 
 

@@ -29,7 +29,7 @@ class LSystem {
                                                     ['[','[', 1.0],
                                                     [']',']', 1.0],
                                                     ['B', 'BBBB', 0.20],
-                                                    ['B', 'B[A]BB', 0.65],
+                                                    ['B', 'B[AA]BB', 0.65],
                                                     ['B', 'B', 0.15],
                                                     ['A', 'B[A]A', 0.4],
                                                     ['A', 'BA', 0.1],
@@ -68,7 +68,6 @@ class LSystem {
                                             for(var i = 0; i< draw.length; i++) {
                                               this.createDRule(draw[i]);
                                             }
-
     }
 
     getString() : string {
@@ -85,16 +84,16 @@ class LSystem {
 
     }
 
-    expandString() : void {
-        var newStringArr: string[] = [];
+    computeLSystem() : void {
+        var toExpand: string[] = [];
         for (var i = 0; i < this.currStringArr.length; i++) {
             var stringToExpand = this.currStringArr[i];
             for (var j = 0; j < stringToExpand.length; j++) {
-                this.pushString(newStringArr, stringToExpand, j);
+                this.pushString(toExpand, stringToExpand, j);
             }
         }
 
-        this.currStringArr = newStringArr;
+        this.currStringArr = toExpand;
     }
 
     drawLSystem() : void {

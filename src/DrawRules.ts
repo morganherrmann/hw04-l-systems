@@ -1,15 +1,34 @@
 
 class DrawRules {
 
-
+    currentChar : string;
     drawRulesMap: Map<string, Map<number, any>> = new Map<string, Map<number, any>>();
 
     constructor() { }
 
-    newMap(probability : number, drawFunction : any, char: string){
+    createMap(probability : number, drawFunction : any, char: string){
       var probToFunctionMap: Map<number, any> = new Map<number, any>();
       probToFunctionMap.set(probability, drawFunction);
       this.drawRulesMap.set(char, probToFunctionMap);
+    }
+
+    //computing the draw rule almost the same as the exp rule
+    computeDrawRule(){
+      var probToFunctionMap: Map<number, any> = this.drawRulesMap.get(this.currentChar);
+      var rand: number = Math.random();
+      var drawRule: any;
+      var cumulativeProb: number = 0.0;
+
+      for (const prob of probToFunctionMap.keys()) {
+
+        var isRandom = rand > cumulativeProb;
+        var isValid = rand <= cumulativeProb + prob;
+          if (isRandom && isValid) {
+              drawRule = probToFunctionMap.get(prob);
+          }
+          cumulativeProb = cumulativeProb + prob;
+      }
+      return drawRule;
     }
 
     addDrawRule(char: string, probability: number, drawFunction: any) {
@@ -17,7 +36,7 @@ class DrawRules {
         if (hasChar) {
             this.drawRulesMap.get(char).set(probability, drawFunction);
         } else {
-            this.newMap(probability, drawFunction, char);
+            this.createMap(probability, drawFunction, char);
         }
     }
 
@@ -25,23 +44,9 @@ class DrawRules {
     getDrawRule(char: string): any {
 
         if (this.drawRulesMap.has(char)) {
-            var probToFunctionMap: Map<number, any> = this.drawRulesMap.get(char);
-            var rand: number = Math.random();
-            var drawRule: any;
-            var cumulativeProb: number = 0.0;
-
-            for (const prob of probToFunctionMap.keys()) {
-
-              var isRandom = rand > cumulativeProb;
-              var isValid = rand <= cumulativeProb + prob;
-
-                if (isRandom && isValid) {
-                    drawRule = probToFunctionMap.get(prob);
-                }
-                cumulativeProb += prob;
-            }
+          this.currentChar = char;
+            var drawRule = this.computeDrawRule();
             return drawRule;
-
         } else {
 
             return function() : void {};

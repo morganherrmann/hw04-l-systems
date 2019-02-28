@@ -13,6 +13,11 @@ class TurtleState {
         this.scale = startScale;
     }
 
+    rotZ(angle: number) : void  {
+      var o = this.orient;
+      var rad = glMatrix.toRadian(angle);
+      this.orient = quat.rotateZ(o, o, rad);
+    }
 
     rotX(angle: number) : void  {
         var o = this.orient;
@@ -24,12 +29,6 @@ class TurtleState {
       var o = this.orient;
       var rad = glMatrix.toRadian(angle);
       this.orient = quat.rotateY(o, o, rad);
-    }
-
-    rotZ(angle: number) : void  {
-      var o = this.orient;
-      var rad = glMatrix.toRadian(angle);
-      this.orient = quat.rotateZ(o, o, rad);
     }
 
     transTurtle(translate: vec3) : void {

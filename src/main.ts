@@ -54,7 +54,7 @@ function loadScene() {
 
 //funtion to load OBJ ... thank u, cis 460 half edge
 
- function loadOBJ(mesh: Drawable, objectData: string, callback: any): void {
+ function loadOBJ(mesh: Drawable, objFile: string, callback: any): void {
     var vertIDX = [];
     var vertNor = [];
     var vertBuff = [];
@@ -63,7 +63,7 @@ function loadScene() {
     var finalIDX = [];
     var index: number = 0;
 
-    var lines = objectData.split('\n');
+    var lines = objFile.split('\n');
 
     for (var i = 0; i < lines.length; i++) {
       var isVert : boolean = lines[i].startsWith('v ');
@@ -121,11 +121,11 @@ function loadScene() {
         }
     }
 
-    var finalPositions = vertBuff;
-    var finalNormals = buffNor;
-    var finalIndices = finalIDX;
+    var finalPos = vertBuff;
+    var finalNor = buffNor;
+    var finalIndex = finalIDX;
 
-    callback(finalIndices, finalPositions, finalNormals);
+    callback(finalIndex, finalPos, finalNor);
 }
 
 
@@ -140,7 +140,7 @@ function update() {
   let plantLSystem: LSystem = new LSystem(startChar, plantMesh);
 
   for (var i = 0; i < controls.Iterations; i++) {
-    plantLSystem.expandString();
+    plantLSystem.computeLSystem();
   }
 
   //create the Leaf and plant system
@@ -273,7 +273,6 @@ const boxShader = new ShaderProgram([
     question.create();
   }
 
-
   // SOURCE CODE FOR READING OBJ FILE FROM PIAZZA
   //https://piazza.com/class/jr11vjieq8t6om?cid=103
   function parseOBJ(file: string, callback: any): void {
@@ -285,12 +284,10 @@ const boxShader = new ShaderProgram([
     rawFile.open("GET", file, false);
     rawFile.onreadystatechange = function () {
 
-      if(rawFile.readyState === 4)
-        {
-            if(rawFile.status === 200 || rawFile.status == 0)
-            {
-    var allText = rawFile.responseText;
-    loadOBJ(leaf, allText, callback);
+      if(rawFile.readyState === 4){
+            if(rawFile.status === 200 || rawFile.status == 0){
+              var allText = rawFile.responseText;
+              loadOBJ(leaf, allText, callback);
     }
   }
 }
