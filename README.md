@@ -2,6 +2,8 @@
 #### moher@seas.upenn.edu
 ### DEMO LINK - https://morganherrmann.github.io/lsystem/
 
+![Demo](Plant1.PNG)
+
 ## L-System Classes and Drawing Rules
 
 - For my turtle class, each turtle has a current state- including rotation, scale, and a stack of turtle states. Functions included in the turtle class allow a user to rotate in the X/Y/Z directions based on random values.  I chose the rotations to primarily occur in the X and Z direction, and slightly less likely in the Y direction, to mimic the upward growth of a vine/tentacle looking plant. I also included a wildcard function that is called infrequently, but introduces a totally random rotation to the plant.  The scale of the leaves is also a trait directly modifiable by the user.
@@ -45,9 +47,20 @@ I had a bit of trouble with the instance rendering- but was able to generate tra
 
 ### Interactive Atrributes
  - Scale of Leaves.
+  ![COLOR](scale.PNG)
  - Color of piranhas, leaves, and pipes are all modifiable.
+ ![Demo](Plant2.PNG)
  - Number of iterations! See 1-4. Note that 4 may take a little longer than the others.
   - To see these updates , please make your changes and click the UPDATE button on top of the GUI.
+  
+  ##### Iteration 1
+  ![COLOR](iter1.PNG)
+  ###### Iteration 2
+  ![COLOR](iter2.PNG)
+  ###### Iteration 3
+  ![COLOR](iter3.PNG)
+  ###### Iteration 4
+  ![COLOR](iter4.PNG)
 
 ## Extra Credit
 - visual polish!!!  I made my own 3D models and animated them for this project.  The question blocks, pipes, ground, and leaves are my own OBJ files which I exported from Maya, and imported by parsing the file.  I also made separate shaders for the ground and question blocks so that they could float up and down, similar to the game.
