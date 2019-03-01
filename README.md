@@ -23,14 +23,14 @@ My L System contains the following DRAW rules. In the form (CHARACTER ENCOUNTERE
 
 #### Expansion Rules
 The expansion rules I used are as follows.  Note that brackets always match to themselves, and letters map to new strings. To promote upward growth, I included B --> BBBB at a low probability to encourage a spurt of upward growth without being too prominent. These rules are in the form (KEY CHARACTER, MAPPED STRING, PROBABILITY).
-['[','[', 1.0],
-[']',']', 1.0],
-['B', 'BBBB', 0.20],
-['B', 'B[AA]BB', 0.65],
-['B', 'B', 0.15],
-['A', 'B[A]A', 0.4],
-['A', 'BA', 0.1],
-['A', 'B[A][A]A', 0.5]
+* ['[','[', 1.0],
+* [']',']', 1.0],
+* ['B', 'BBBB', 0.20],
+* ['B', 'B[AA]BB', 0.65],
+* ['B', 'B', 0.15],
+* ['A', 'B[A]A', 0.4],
+* ['A', 'BA', 0.1],
+* ['A', 'B[A][A]A', 0.5]
 
 Map<string, Map<number, string>> is the format I used to store this information, to store each character with its accumulated probability and expansion string.
 
