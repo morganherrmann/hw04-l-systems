@@ -87,9 +87,9 @@ class LSystem {
     computeLSystem() : void {
         var toExpand: string[] = [];
         for (var i = 0; i < this.stringArray.length; i++) {
-            var stringToExpand = this.stringArray[i];
-            for (var j = 0; j < stringToExpand.length; j++) {
-                this.pushString(toExpand, stringToExpand, j);
+            var startString = this.stringArray[i];
+            for (var j = 0; j < startString.length; j++) {
+                this.pushString(toExpand, startString, j);
             }
         }
 
@@ -98,11 +98,11 @@ class LSystem {
 
     drawLSystem() : void {
         for (var i = 0; i < this.stringArray.length; i++) {
-            var stringToExpand = this.stringArray[i];
-            for (var j = 0; j < stringToExpand.length; j++) {
-                var char = stringToExpand.charAt(j);
-                let drawFunction = this.drawRules.getDrawRule(char);
-                drawFunction();
+            var startString = this.stringArray[i];
+            for (var j = 0; j < startString.length; j++) {
+                var char = startString.charAt(j);
+                let drawFunc = this.drawRules.getDrawRule(char);
+                drawFunc();
             }
         }
     }
